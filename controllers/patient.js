@@ -5,6 +5,7 @@ exports.createPatient = async (req, res) => {
     const newPatient = await patient.save();
     res.json(newPatient);
   } catch (e) {
+    console.log(e);
     return res.status(400).json({
       error: "Failed to create new patient",
     });

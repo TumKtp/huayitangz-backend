@@ -1,8 +1,8 @@
-var mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const { ObjectId } = mongoose.Schema;
 
-var patientSchema = new mongoose.Schema(
+const patientSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
@@ -37,5 +37,5 @@ var patientSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
+patientSchema.index({ firstName: 1, lastName: 1 }, { unique: true });
 module.exports = mongoose.model("Patient", patientSchema);
