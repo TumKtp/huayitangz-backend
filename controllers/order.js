@@ -67,7 +67,9 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const allOrder = await Order.find().populate("user", "_id name").exec();
+    const allOrder = await Order.find()
+      .populate("user patient", "_id name firstName lastName address")
+      .exec();
     res.json(allOrder);
   } catch (e) {
     return res.status(400).json({

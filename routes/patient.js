@@ -9,13 +9,7 @@ const { getUserById } = require("../controllers/user");
 router.param("userId", getUserById);
 
 // Get all patients credentials
-router.get(
-  "/patients/:userId",
-  isSignedIn,
-  isAuthenticated,
-  isAdmin,
-  getAllPatients
-);
+router.get("/patients/:userId", isSignedIn, isAuthenticated, getAllPatients);
 
 // Create new patient
 router.post(
