@@ -21,6 +21,7 @@ const orderSchema = new mongoose.Schema(
         ref: "ProductCart",
       },
     ],
+    herbPackage: { type: Number, default: 1 },
     user: {
       type: ObjectId,
       ref: "User",

@@ -15,6 +15,7 @@ exports.getOrderById = (req, res, next, id) => {
       next();
     });
 };
+
 //TODO: reject empty cart submission
 exports.createOrder = async (req, res) => {
   const order = new Order({
@@ -23,23 +24,39 @@ exports.createOrder = async (req, res) => {
     patient: req.body.patient,
   });
   try {
-    // Save ordder in DB
+    // Save ordder in DBs
     var amount = 0;
     for (item of req.body.cart) {
       // Create product cart (a item in cart)
       const productCart = await new ProductCart(item)
         .populate("product")
         .execPopulate();
-      // console.log(productCart);
+      // console.log(productCart.product.category);
       // Calculate price of an individual item
-      productCart.item_price = productCart.product.price * productCart.count;
+      productCart.item_price =
+        productCart.product.category == process.env.HERB_CATEGORY_ID
+          ? (
+              productCart.product.price *
+              productCart.count *
+              req.body.herbPackage
+            ).toFixed(1)
+          : (productCart.product.price * productCart.count).toFixed(1);
+
+      // console.log(
+      //   productCart.product.price,
+      //   productCart.count,
+      //   req.body.herbPackage
+      // );
+      // console.log(productCart.item_price);
+      // console.log("---------------------------");
       await productCart.save();
       // Push ID to order
       order.products.push(productCart._id);
       // Calculate total amount
       amount += productCart.item_price;
     }
-    order.amount = amount;
+    order.amount = amount.toFixed(1);
+    console.log(order.amount);
     await order.save();
 
     // Update Orders List of User
