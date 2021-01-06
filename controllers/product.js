@@ -11,7 +11,6 @@ exports.getProductById = async (req, res, next, id) => {
       error: "Product not found",
     });
   }
-  //asdasd
 };
 
 exports.createProduct = async (req, res) => {

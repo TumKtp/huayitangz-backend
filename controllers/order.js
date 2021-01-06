@@ -1,6 +1,6 @@
 const { Order, ProductCart } = require("../models/order");
-const product = require("../models/product");
 const User = require("../models/user");
+const { validationResult } = require("express-validator");
 
 exports.getOrderById = (req, res, next, id) => {
   Order.findById(id)
@@ -18,15 +18,30 @@ exports.getOrderById = (req, res, next, id) => {
 
 //TODO: reject empty cart submission
 exports.createOrder = async (req, res) => {
+  // Validate req.body from Auth Route
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({
+      error: "Can't submit an empty cart",
+    });
+  }
+
   const order = new Order({
     user: req.profile._id,
     products: [],
     patient: req.body.patient,
+    herbPackage: req.body.herbPackage,
   });
   try {
-    // Save ordder in DBs
+    // Save order in DBs
+    const sortedCart = req.body.cart.sort((a, b) => {
+      if (a.categoryName < b.categoryName) {
+        return -1;
+      }
+      return 1;
+    });
     var amount = 0;
-    for (item of req.body.cart) {
+    for (item of sortedCart) {
       // Create product cart (a item in cart)
       const productCart = await new ProductCart(item)
         .populate("product")
@@ -84,9 +99,21 @@ exports.createOrder = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const allOrder = await Order.find()
-      .populate("user patient", "_id name firstName lastName address")
+    var allOrder = await Order.find()
+      .populate({
+        path: "products user patient",
+        select: "name firstName lastName address phoneNumber item_price",
+        populate: {
+          path: "product",
+          select: "name price imageUrl",
+          populate: {
+            path: "category",
+            select: "name",
+          },
+        },
+      })
       .exec();
+
     res.json(allOrder);
   } catch (e) {
     return res.status(400).json({
@@ -107,6 +134,22 @@ exports.updateStatus = async (req, res) => {
       { new: true, runValidators: true }
     );
     res.json(updatedOrder);
+  } catch (e) {
+    console.log(e);
+    return res.status(400).json({
+      error: "Cannot update order status",
+    });
+  }
+};
+
+exports.deleteOrder = async (req, res) => {
+  try {
+    console.log(req.order);
+    const deletedOrder = await Order.findByIdAndDelete(req.order._id);
+    res.json({
+      message: "Deletion was a success",
+      deletedOrder,
+    });
   } catch (e) {
     console.log(e);
     return res.status(400).json({

@@ -9,7 +9,7 @@ exports.getUserById = async (req, res, next, id) => {
     // Hide crucial information before sending to other middlewares
     req.profile.salt = undefined;
     req.profile.encry_password = undefined;
-    console.log("USERID PARAMS: " + foundUser);
+    //console.log("USERID PARAMS: " + foundUser);
     next();
   } catch (e) {
     return res.status(400).json({
@@ -20,6 +20,11 @@ exports.getUserById = async (req, res, next, id) => {
 
 exports.getUser = (req, res) => {
   return res.json(req.profile);
+};
+
+exports.getAllUsers = async (req, res) => {
+  const foundUsers = await User.find();
+  return res.json(foundUsers);
 };
 
 // exports.updateUser = (req, res) => {

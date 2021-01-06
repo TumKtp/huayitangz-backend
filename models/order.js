@@ -6,7 +6,6 @@ var productCartSchema = new mongoose.Schema({
     type: ObjectId,
     ref: "Product",
   },
-  name: String,
   count: Number,
   item_price: Number,
 });
@@ -21,7 +20,7 @@ const orderSchema = new mongoose.Schema(
         ref: "ProductCart",
       },
     ],
-    herbPackage: { type: Number, default: 1 },
+    herbPackage: { type: Number, required: true, min: 1 },
     user: {
       type: ObjectId,
       ref: "User",

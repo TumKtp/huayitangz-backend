@@ -37,6 +37,17 @@ app.use("/api", categoryRoutes);
 app.use("/api", productRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", patientRoutes);
+
+app.use((err, req, res, next) => {
+  if (err.name === "UnauthorizedError") {
+    err.message = "Invalid token";
+    err.statusCode = 401;
+  }
+  const { statusCode = 500 } = err;
+  if (!err.message) err.message = "Oh No, Something Went Wrong!";
+  return res.status(statusCode).json(err);
+});
+
 //PORT
 const port = process.env.PORT || 8000;
 

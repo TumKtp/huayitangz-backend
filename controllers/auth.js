@@ -49,7 +49,10 @@ exports.signin = async (req, res) => {
       throw e;
     }
     // Create token
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET);
+    const token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+      algorithm: "HS256",
+      expiresIn: "7d",
+    });
     // Put token in cookie
     //TODO: need token in cookie or not?
     res.cookie("token", token, { expire: new Date() + 9999 });
