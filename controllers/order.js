@@ -1,7 +1,7 @@
 const { Order, ProductCart } = require("../models/order");
-const User = require("../models/user");
-const { validationResult } = require("express-validator");
 
+const { validationResult } = require("express-validator");
+const { updateStock } = require("./product");
 exports.getOrderById = (req, res, next, id) => {
   Order.findById(id)
     .populate("products.product", "name price")
@@ -25,13 +25,13 @@ exports.createOrder = async (req, res) => {
       error: "Can't submit an empty cart",
     });
   }
-
   const order = new Order({
     user: req.profile._id,
     products: [],
     patient: req.body.patient,
-    herbPackage: req.body.herbPackage,
+    herbPackage: req.body.herbPackage || 0,
   });
+  const updateStockArray = [];
   try {
     // Save order in DBs
     const sortedCart = req.body.cart.sort((a, b) => {
@@ -46,53 +46,59 @@ exports.createOrder = async (req, res) => {
       const productCart = await new ProductCart(item)
         .populate("product")
         .execPopulate();
-      // console.log(productCart.product.category);
+      updateStockArray.push(productCart);
+      // Don't have enoght product in stock
+      if (
+        (productCart.product.category == process.env.HERB_CATEGORY_ID
+          ? productCart.count * order.herbPackage
+          : productCart.count) > productCart.product.stock
+      ) {
+        // delete unused ProductCart item
+        await ProductCart.findByIdAndDelete({
+          $in: order.products,
+        });
+        throw { errorTH: "Out of stock" };
+      }
+
       // Calculate price of an individual item
       productCart.item_price =
         productCart.product.category == process.env.HERB_CATEGORY_ID
           ? (
               productCart.product.price *
               productCart.count *
-              req.body.herbPackage
+              order.herbPackage
             ).toFixed(1)
           : (productCart.product.price * productCart.count).toFixed(1);
-
-      // console.log(
-      //   productCart.product.price,
-      //   productCart.count,
-      //   req.body.herbPackage
-      // );
-      // console.log(productCart.item_price);
-      // console.log("---------------------------");
       await productCart.save();
+
       // Push ID to order
       order.products.push(productCart._id);
       // Calculate total amount
       amount += productCart.item_price;
     }
     order.amount = amount.toFixed(1);
-    console.log(order.amount);
-    await order.save();
 
-    // Update Orders List of User
-    try {
-      await User.findOneAndUpdate(
-        { _id: req.profile._id },
-        { $push: { orders: order.products } },
-        { new: true }
-      );
-      console.log("UPDATE USER LIST Done");
-    } catch (e) {
-      console.log(e);
-      return res.status(400).json({
-        error: "Unable to save purchase list",
-      });
-    }
+    await order.save();
+    await updateStock(updateStockArray, order.herbPackage);
+    // // Update Orders List of User
+    // try {
+    //   await User.findOneAndUpdate(
+    //     { _id: req.profile._id },
+    //     { $push: { orders: order.products } },
+    //     { new: true }
+    //   );
+    //   console.log("UPDATE USER LIST Done");
+    // } catch (e) {
+    //   console.log(e);
+    //   return res.status(400).json({
+    //     error: "Unable to save purchase list",
+    //   });
+    // }
     res.json(order);
   } catch (e) {
     console.log(e);
     return res.status(400).json({
-      error: "Failed to save your order in DB",
+      error: e.errorTH ? e : "Failed to save your order in DB",
     });
   }
 };
@@ -100,6 +106,33 @@ exports.createOrder = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
   try {
     var allOrder = await Order.find()
+      .populate({
+        path: "products user patient",
+        select: "name firstName lastName address phoneNumber item_price",
+        populate: {
+          path: "product",
+          select: "name price imageUrl",
+          populate: {
+            path: "category",
+            select: "name",
+          },
+        },
+      })
+      .exec();
+
+    res.json(allOrder);
+  } catch (e) {
+    console.log("Wrong push");
+    console.log(order.products);
+    return res.status(400).json({
+      error: "No orders found in DB",
+    });
+  }
+};
+
+exports.getOrdersForUser = async (req, res) => {
+  try {
+    var allOrder = await Order.find({ user: req.profile._id })
       .populate({
         path: "products user patient",
         select: "name firstName lastName address phoneNumber item_price",

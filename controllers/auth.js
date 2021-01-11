@@ -16,7 +16,7 @@ exports.signup = async (req, res) => {
   try {
     const newUser = new User(req.body);
     const user = await newUser.save();
-    res.json({
+    return res.json({
       name: user.name,
       email: user.email,
       id: user._id,
@@ -94,10 +94,16 @@ exports.isAuthenticated = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
-  if (req.profile.role === 0) {
+  if (req.profile.role === 2) return next();
+  return res.status(403).json({
+    error: "You are not an admin, Access denied",
+  });
+};
+
+exports.isDoctor = (req, res, next) => {
+  if (req.profile.role === 0)
     return res.status(403).json({
-      error: "You are not ADMIN, Access denied",
+      error: "You are not a doctor, Access denied",
     });
-  }
   next();
 };

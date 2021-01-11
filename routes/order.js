@@ -1,6 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
+const {
+  isSignedIn,
+  isAuthenticated,
+  isAdmin,
+  isDoctor,
+} = require("../controllers/auth");
 const { getUserById } = require("../controllers/user");
 const { updateStock } = require("../controllers/product");
 const { check } = require("express-validator");
@@ -9,6 +14,7 @@ const {
   getOrderById,
   createOrder,
   getAllOrders,
+  getOrdersForUser,
   getOrderStatus,
   updateStatus,
   deleteOrder,
@@ -25,26 +31,27 @@ router.post(
   "/order/create/:userId",
   isSignedIn,
   isAuthenticated,
-  [check("cart", "name should be at least 3 char").notEmpty()],
-  updateStock,
+  [check("cart", "Can't place empty cart").notEmpty()],
+  // updateStock,
   createOrder
 );
 
 //read
 router.get(
-  "/orders/:userId",
+  "/admin/orders/:userId",
   isSignedIn,
   isAuthenticated,
-  isAdmin,
+  isDoctor,
   getAllOrders
 );
 
+router.get("/orders/:userId", isSignedIn, isAuthenticated, getOrdersForUser);
+
 //read status of order
 router.get(
-  "/order/status/:userId",
+  "/orders/status/:userId",
   isSignedIn,
   isAuthenticated,
-  isAdmin,
   getOrderStatus
 );
 
@@ -53,7 +60,7 @@ router.put(
   "/orders/:orderId/status/:userId",
   isSignedIn,
   isAuthenticated,
-  isAdmin,
+  isDoctor,
   updateStatus
 );
 

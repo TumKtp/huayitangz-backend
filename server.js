@@ -6,6 +6,8 @@ const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
 
 //My routes
 const authRoutes = require("./routes/auth");
@@ -15,6 +17,7 @@ const productRoutes = require("./routes/product");
 const orderRoutes = require("./routes/order");
 const patientRoutes = require("./routes/patient");
 //DB Connection
+
 mongoose
   .connect(process.env.DATABASE, {
     useNewUrlParser: true,
@@ -29,6 +32,8 @@ mongoose.set("useFindAndModify", false);
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors());
+app.use(mongoSanitize());
+app.use(helmet());
 
 //My Routes
 app.use("/api", authRoutes);

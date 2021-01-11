@@ -20,16 +20,14 @@ const orderSchema = new mongoose.Schema(
         ref: "ProductCart",
       },
     ],
-    herbPackage: { type: Number, required: true, min: 1 },
-    user: {
-      type: ObjectId,
-      ref: "User",
+    user: { type: ObjectId, ref: "User" },
+    patient: { type: ObjectId, ref: "Patient" },
+    herbPackage: {
+      type: Number,
+      required: true,
+      min: 0,
     },
     amount: { type: Number },
-    patient: {
-      type: ObjectId,
-      ref: "Patient",
-    },
     status: {
       type: String,
       default: "Processing",

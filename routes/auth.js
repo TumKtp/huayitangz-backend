@@ -13,6 +13,7 @@ router.post(
     check("password", "password should be at least 3 char").isLength({
       min: 3,
     }),
+    check("role", "role error").isInt({ min: 0, max: 2 }),
   ],
   signup
 );

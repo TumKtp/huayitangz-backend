@@ -1,4 +1,6 @@
+const { ProductCart } = require("../models/order");
 const Product = require("../models/product");
+
 //TODO: add unique to product
 exports.getProductById = async (req, res, next, id) => {
   try {
@@ -81,8 +83,38 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-//TODO: Bug when out of stock
-exports.updateStock = async (req, res, next) => {
+exports.updateStock = async (cart, herbPackage) => {
+  let myOperations = cart.map((prod) => {
+    console.log(prod);
+    return {
+      updateOne: {
+        filter: { _id: prod.product._id },
+        update:
+          prod.product.category == process.env.HERB_CATEGORY_ID
+            ? {
+                $inc: {
+                  stock: -prod.count * herbPackage,
+                  sold: +prod.count * herbPackage,
+                },
+              }
+            : {
+                $inc: {
+                  stock: -prod.count,
+                  sold: +prod.count,
+                },
+              },
+      },
+    };
+  });
+  try {
+    await Product.bulkWrite(myOperations);
+  } catch (e) {
+    return "Error";
+  }
+};
+
+//TODO: Use this
+exports.updateStockMIDDLEWARE = async (req, res, next) => {
   let myOperations = req.body.cart.map((prod) => {
     return {
       updateOne: {

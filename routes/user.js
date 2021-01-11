@@ -17,6 +17,7 @@ router.get("/user/:userId", isSignedIn, isAuthenticated, getUser);
 //get all users
 router.get("/users/:userId", isSignedIn, isAuthenticated, isAdmin, getAllUsers);
 
+//TODO: remove
 router.get(
   "/orders/user/:userId",
   isSignedIn,
