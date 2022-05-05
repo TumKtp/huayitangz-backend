@@ -1,5 +1,5 @@
-const express = require("express");
-const router = express.Router();
+const express = require("express")
+const router = express.Router()
 
 const {
   getProductById,
@@ -8,13 +8,14 @@ const {
   updateProduct,
   deleteProduct,
   getAllProducts,
-} = require("../controllers/product");
-const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth");
-const { getUserById } = require("../controllers/user");
+} = require("../controllers/product")
+const { isSignedIn, isAuthenticated, isAdmin } = require("../controllers/auth")
+const { getUserById } = require("../controllers/user")
 
 //all of params
-router.param("userId", getUserById);
-router.param("productId", getProductById);
+// test
+router.param("userId", getUserById)
+router.param("productId", getProductById)
 //TODO: add req.body validation
 //all of actual routes
 //create route
@@ -24,16 +25,16 @@ router.post(
   isAuthenticated,
   isAdmin,
   createProduct
-);
+)
 
 // read routes
-router.get("/products/:userId", isSignedIn, isAuthenticated, getAllProducts);
+router.get("/products/:userId", isSignedIn, isAuthenticated, getAllProducts)
 router.get(
   "/product/:productId/:userId",
   isSignedIn,
   isAuthenticated,
   getProduct
-);
+)
 
 //delete route
 router.delete(
@@ -42,7 +43,7 @@ router.delete(
   isAuthenticated,
   isAdmin,
   deleteProduct
-);
+)
 
 //update route
 router.put(
@@ -51,6 +52,6 @@ router.put(
   isAuthenticated,
   isAdmin,
   updateProduct
-);
+)
 
-module.exports = router;
+module.exports = router
